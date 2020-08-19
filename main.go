@@ -23,6 +23,18 @@ func newClient() *http.Client {
 	return netClient
 }
 
+func request(
+	httpVerb func(string) (*http.Response, error),
+	url string,
+
+) {
+	resp, err := cb(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+}
+
 func main() {
 	netClient := newClient()
 	s := new(Wallpapers)
