@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"io"
 	"net/http"
+	"time"
 )
 
 type Wallpaper struct {
 	ID         string `json:"id"`
 	Path       string `json:"path"`
 	Resolution string `json:"resolution"`
-  }
-  
-  type Wallpapers struct {
+}
+
+type Wallpapers struct {
 	Data []Wallpaper `json:"data"`
-  }
+}
 
 func newClient() *http.Client {
 	netClient := new(http.Client)
@@ -24,15 +25,18 @@ func newClient() *http.Client {
 }
 
 func request(
-	httpVerb func(string) (*http.Response, error),
+	httpCb func(string) (*http.Response, error),
 	url string,
-
+	cb func(io.Reader, chan Wallpapers),
+	chWalls chan Wallpapers,
 ) {
-	resp, err := cb(url)
+	resp, err := httpCb(url)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	cb(resp.Body, chWalls)
 }
 
 func main() {
