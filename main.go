@@ -59,6 +59,5 @@ func main() {
 		if _, err := io.Copy(file, resp.Body); err != nil {
 			panic(err)
 		}
-		defer resp.Body.Close()
 	}
 }
