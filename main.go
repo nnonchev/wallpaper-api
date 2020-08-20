@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -24,24 +25,24 @@ func newClient() *http.Client {
 	return netClient
 }
 
-func request(
-	httpCb func(string) (*http.Response, error),
-	url string,
-	cb func(io.Reader, chan Wallpapers),
-	chWalls chan Wallpapers,
-) {
-	resp, err := httpCb(url)
+func main() {
+	netClient := newClient()
+	walls := new(Wallpapers)
+
+	resp, err := netClient.Get("https://wallhaven.cc/api/v1/search")
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
 
-	cb(resp.Body, chWalls)
-}
+	if err := json.NewDecoder(resp.Body).Decode(walls); err != nil {
+		panic(err)
+	}
 
-func main() {
-	netClient := newClient()
-	s := new(Wallpapers)
+	for _, wall := range walls.Data {
+		startAt := strings.LastIndex(wall.Path, wall.ID)
+		filename := wall.Path[startAt:]
 
-	fmt.Println(netClient, s)
+		fmt.Printf("Filename: %s, Filepath: %s\n", filename, wall.Path)
+	}
 }
