@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -43,6 +44,21 @@ func main() {
 		startAt := strings.LastIndex(wall.Path, wall.ID)
 		filename := wall.Path[startAt:]
 
-		fmt.Printf("Filename: %s, Filepath: %s\n", filename, wall.Path)
+		file, err := os.Create(filename)
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
+		resp, err := netClient.Get(wall.Path)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		if _, err := io.Copy(file, resp.Body); err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
 	}
 }
